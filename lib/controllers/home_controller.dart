@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../services/firebase_service.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 
 class HomeController extends GetxController {
   final FirebaseService _firebaseService = FirebaseService();
@@ -18,11 +19,14 @@ class HomeController extends GetxController {
   final selectedDate = DateTime.now().obs;
   final dateDisplay = ''.obs;
 
+  // Stream subscription
+  StreamSubscription<List<Map<String, dynamic>>>? _salesSubscription;
+
   @override
   void onInit() {
     super.onInit();
     updateDateDisplay();
-    refreshData();
+    _initSalesStream();
   }
 
   void updateDateDisplay() {
@@ -42,18 +46,24 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> refreshData() async {
-    debugPrint('Refreshing data for date: ${selectedDate.value}');
+  void _initSalesStream() {
+    debugPrint('Initializing sales stream for date: ${selectedDate.value}');
+    // Cancel existing subscription if any
+    _salesSubscription?.cancel();
+    
     isLoading.value = true;
-    try {
-      final sales = await _firebaseService.getSalesForDate(selectedDate.value).first;
-      _updateStats(sales);
-    } catch (e) {
-      debugPrint('Error refreshing data: $e');
-      errorMessage.value = 'Error refreshing data: $e';
-    } finally {
-      isLoading.value = false;
-    }
+    
+    // Create new subscription
+    _salesSubscription = _firebaseService
+        .getSalesForDate(selectedDate.value)
+        .listen(
+          _updateStats,
+          onError: (error) {
+            debugPrint('Error in sales stream: $error');
+            errorMessage.value = 'Error loading sales: $error';
+            isLoading.value = false;
+          },
+        );
   }
 
   void _updateStats(List<Map<String, dynamic>> sales) {
@@ -86,11 +96,18 @@ class HomeController extends GetxController {
     } catch (e) {
       debugPrint('Error updating stats: $e');
       errorMessage.value = 'Error updating stats: $e';
+    } finally {
+      isLoading.value = false;
     }
+  }
+
+  Future<void> refreshData() async {
+    _initSalesStream();
   }
 
   @override
   void onClose() {
+    _salesSubscription?.cancel();
     super.onClose();
   }
 }

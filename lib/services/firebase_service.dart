@@ -4,6 +4,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+enum ENVIRONMENT { dev, prod }
+
+const environment = ENVIRONMENT.dev;
+
+get baseUrl => environment == ENVIRONMENT.dev ? "dev" : "prod";
+
 class FirebaseService {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
 
@@ -26,6 +32,7 @@ class FirebaseService {
       final day = now.day.toString().padLeft(2, '0');
 
       final saleRef = _database
+          .child(baseUrl)
           .child('sales')
           .child(year)
           .child(month)
@@ -111,6 +118,7 @@ class FirebaseService {
 
     debugPrint('Fetching today\'s sales for $year-$month-$day');
     return _database
+        .child(baseUrl)
         .child('sales')
         .child(year)
         .child(month)
@@ -173,6 +181,7 @@ class FirebaseService {
       final day = date.day.toString().padLeft(2, '0');
 
       await _database
+          .child(baseUrl)
           .child('sales')
           .child(year)
           .child(month)
@@ -191,45 +200,47 @@ class FirebaseService {
     final endOfDay = startOfDay.add(const Duration(days: 1));
 
     debugPrint('Fetching sales for ${DateFormat('yyyy-MM-dd').format(date)}');
-    
+
     return _database
+        .child(baseUrl)
         .child('sales')
         .child(date.year.toString())
         .child(date.month.toString().padLeft(2, '0'))
         .child(date.day.toString().padLeft(2, '0'))
         .onValue
         .map((event) {
-      if (event.snapshot.value == null) {
-        debugPrint('No sales found for selected date');
-        return [];
-      }
+          if (event.snapshot.value == null) {
+            debugPrint('No sales found for selected date');
+            return [];
+          }
 
-      List<Map<String, dynamic>> sales = [];
-      try {
-        Map<dynamic, dynamic> salesData = event.snapshot.value as Map<dynamic, dynamic>;
-        salesData.forEach((key, value) {
-          if (value is Map) {
-            Map<String, dynamic> saleMap = {};
-            value.forEach((k, v) => saleMap[k.toString()] = v);
-            saleMap['id'] = key;
-            sales.add(saleMap);
+          List<Map<String, dynamic>> sales = [];
+          try {
+            Map<dynamic, dynamic> salesData =
+                event.snapshot.value as Map<dynamic, dynamic>;
+            salesData.forEach((key, value) {
+              if (value is Map) {
+                Map<String, dynamic> saleMap = {};
+                value.forEach((k, v) => saleMap[k.toString()] = v);
+                saleMap['id'] = key;
+                sales.add(saleMap);
+              }
+            });
+
+            // Sort by timestamp in descending order
+            sales.sort((a, b) {
+              final aTime = a['timestamp'] ?? 0;
+              final bTime = b['timestamp'] ?? 0;
+              return bTime.compareTo(aTime);
+            });
+
+            debugPrint('Found ${sales.length} sales for selected date');
+            return sales;
+          } catch (e) {
+            debugPrint('Error processing sales data: $e');
+            return [];
           }
         });
-
-        // Sort by timestamp in descending order
-        sales.sort((a, b) {
-          final aTime = a['timestamp'] ?? 0;
-          final bTime = b['timestamp'] ?? 0;
-          return bTime.compareTo(aTime);
-        });
-
-        debugPrint('Found ${sales.length} sales for selected date');
-        return sales;
-      } catch (e) {
-        debugPrint('Error processing sales data: $e');
-        return [];
-      }
-    });
   }
 
   Future<Map<String, dynamic>> getMonthlySalesSummary(DateTime date) async {
@@ -238,7 +249,12 @@ class FirebaseService {
       final month = date.month.toString().padLeft(2, '0');
 
       final snapshot =
-          await _database.child('sales').child(year).child(month).get();
+          await _database
+              .child(baseUrl)
+              .child('sales')
+              .child(year)
+              .child(month)
+              .get();
 
       if (snapshot.value == null) {
         return {
