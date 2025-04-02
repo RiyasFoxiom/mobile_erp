@@ -23,7 +23,7 @@ class FirebaseService {
       final now = DateTime.now();
       final year = now.year.toString();
       final month = now.month.toString().padLeft(2, '0');
-      final day = (now.day - 1).toString().padLeft(2, '0');
+      final day = now.day.toString().padLeft(2, '0');
 
       final saleRef = _database
           .child('sales')
