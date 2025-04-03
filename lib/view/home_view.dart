@@ -28,7 +28,7 @@ class HomeView extends GetView<HomeController> {
                         const Text(
                           'Dashboard',
                           style: TextStyle(
-                            fontSize: 24,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

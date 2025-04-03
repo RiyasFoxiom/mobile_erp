@@ -3,8 +3,9 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:small_mobile_erp/controllers/home_controller.dart';
+import 'package:small_mobile_erp/controllers/landing_controller.dart';
 import 'package:small_mobile_erp/firebase_options.dart';
-import 'package:small_mobile_erp/view/home_view.dart';
+import 'package:small_mobile_erp/view/landing_view.dart';
 
 import 'controllers/sales_controller.dart';
 
@@ -46,8 +47,9 @@ class MyApp extends StatelessWidget {
       initialBinding: BindingsBuilder(() {
         Get.put(HomeController());
         Get.put(SalesController());
+        Get.put(LandingController());
       }),
-      home: const HomeView(),
+      home: LandingView(),
     );
   }
 }
