@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import '../controllers/home_controller.dart';
 import '../view/sales_details_view.dart';
 
-class HomeView extends GetView<HomeController> {
+class HomeView extends GetWidget<HomeController> {
   const HomeView({super.key});
 
   @override
@@ -195,9 +195,7 @@ class HomeView extends GetView<HomeController> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (context) => SalesEntryView()));
+          Get.to(SalesEntryView());
         },
         backgroundColor: Colors.blue,
         child: Icon(Icons.add),

@@ -3,9 +3,7 @@ import 'package:get/get.dart';
 import 'package:small_mobile_erp/models/sales_item.dart';
 import '../controllers/sales_controller.dart';
 
-class SalesEntryView extends GetView<SalesController> {
-  // final SalesController controller = Get.put(SalesController());
-
+class SalesEntryView extends GetWidget<SalesController> {
   SalesEntryView({super.key}) {
     // Regenerate invoice number when the page is opened
     controller.generateInvoiceNumber();
@@ -19,7 +17,10 @@ class SalesEntryView extends GetView<SalesController> {
         scrolledUnderElevation: 0,
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Text('New Sale Entry', style: TextStyle(color: Colors.black,fontSize: 14)),
+        title: Text(
+          'New Sale Entry',
+          style: TextStyle(color: Colors.black, fontSize: 14),
+        ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
@@ -35,41 +36,43 @@ class SalesEntryView extends GetView<SalesController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Invoice Number Card
-                  Obx(() => Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 2,
-                          blurRadius: 8,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Invoice Number',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
+                  Obx(
+                    () => Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            spreadRadius: 2,
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
                           ),
-                        ),
-                        Text(
-                          controller.invoiceNumber.value,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Invoice Number',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                      ],
+                          Text(
+                            controller.invoiceNumber.value,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.blue,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  )),
+                  ),
 
                   SizedBox(height: 16),
 
@@ -101,11 +104,14 @@ class SalesEntryView extends GetView<SalesController> {
                           ],
                         ),
                         SizedBox(height: 16),
-                        Obx(() => Column(
-                          children: controller.items.asMap().entries.map((entry) {
-                            return _buildItemRow(entry.value, entry.key);
-                          }).toList(),
-                        )),
+                        Obx(
+                          () => Column(
+                            children:
+                                controller.items.asMap().entries.map((entry) {
+                                  return _buildItemRow(entry.value, entry.key);
+                                }).toList(),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -137,51 +143,59 @@ class SalesEntryView extends GetView<SalesController> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Summary Card
-            Obx(() => Container(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withOpacity(0.1)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        'Subtotal: ',
-                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                      ),
-                      Text(
-                        '₹${controller.totalAmount.value.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+            Obx(
+              () => Container(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Subtotal: ',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Container(height: 20, width: 1, color: Colors.grey[300]),
-                  Row(
-                    children: [
-                      Text(
-                        'Discount: ',
-                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                      ),
-                      Text(
-                        '-₹${controller.totalDiscount.value.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.red[400],
+                        Text(
+                          '₹${controller.totalAmount.value.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                    Container(height: 20, width: 1, color: Colors.grey[300]),
+                    Row(
+                      children: [
+                        Text(
+                          'Discount: ',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        Text(
+                          '-₹${controller.totalDiscount.value.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red[400],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            )),
+            ),
 
             SizedBox(height: 16),
 
@@ -214,54 +228,59 @@ class SalesEntryView extends GetView<SalesController> {
             SizedBox(height: 16),
 
             // Save Button with Total Amount
-            Obx(() => ElevatedButton(
-              onPressed: () {
-                controller.saveSaleEntry();
-                // Save sale entry
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            Obx(
+              () => ElevatedButton(
+                onPressed: () {
+                  controller.saveSaleEntry();
+                  // Save sale entry
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  minimumSize: Size(double.infinity, 40),
+                  elevation: 0,
                 ),
-                minimumSize: Size(double.infinity, 40),
-                elevation: 0,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.save_outlined),
-                      SizedBox(width: 8),
-                      Text(
-                        'Save Sale Entry',
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.save_outlined),
+                        SizedBox(width: 8),
+                        Text(
+                          'Save Sale Entry',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '₹${controller.finalTotal.toStringAsFixed(2)}',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ],
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
-                      '₹${controller.finalTotal.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            )),
+            ),
           ],
         ),
       ),
@@ -342,11 +361,15 @@ class SalesEntryView extends GetView<SalesController> {
                     ),
                     filled: true,
                     fillColor: Colors.grey[50],
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     isDense: true,
                   ),
                   keyboardType: TextInputType.number,
-                  onChanged: (value) => controller.updateItemQuantity(index, value),
+                  onChanged:
+                      (value) => controller.updateItemQuantity(index, value),
                 ),
               ),
               SizedBox(width: 6),
@@ -369,11 +392,15 @@ class SalesEntryView extends GetView<SalesController> {
                     filled: true,
                     fillColor: Colors.grey[50],
                     prefixText: '₹',
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     isDense: true,
                   ),
                   keyboardType: TextInputType.number,
-                  onChanged: (value) => controller.updateItemPrice(index, value),
+                  onChanged:
+                      (value) => controller.updateItemPrice(index, value),
                 ),
               ),
               SizedBox(width: 6),
@@ -396,11 +423,15 @@ class SalesEntryView extends GetView<SalesController> {
                     filled: true,
                     fillColor: Colors.grey[50],
                     prefixText: '₹',
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     isDense: true,
                   ),
                   keyboardType: TextInputType.number,
-                  onChanged: (value) => controller.updateItemDiscount(index, value),
+                  onChanged:
+                      (value) => controller.updateItemDiscount(index, value),
                 ),
               ),
             ],

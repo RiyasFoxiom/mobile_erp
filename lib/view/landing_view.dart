@@ -4,7 +4,7 @@ import 'home_view.dart';
 import 'report_view.dart';
 import '../controllers/landing_controller.dart';
 
-class LandingView extends GetView<LandingController> {
+class LandingView extends GetWidget<LandingController> {
   const LandingView({super.key});
 
   @override

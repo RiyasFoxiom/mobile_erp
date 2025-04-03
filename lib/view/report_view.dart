@@ -4,10 +4,10 @@ import '../controllers/report_controller.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
 
-class ReportView extends StatelessWidget {
-  final ReportController controller = Get.put(ReportController());
+class ReportView extends GetWidget<ReportController> {
+  // final ReportController controller = Get.put(ReportController());
 
-  ReportView({super.key});
+  const ReportView({super.key});
 
   @override
   Widget build(BuildContext context) {

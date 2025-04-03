@@ -2,12 +2,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:small_mobile_erp/controllers/home_controller.dart';
-import 'package:small_mobile_erp/controllers/landing_controller.dart';
+import 'package:small_mobile_erp/bindings/initial_binding.dart';
 import 'package:small_mobile_erp/firebase_options.dart';
 import 'package:small_mobile_erp/view/landing_view.dart';
-
-import 'controllers/sales_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,11 +41,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      initialBinding: BindingsBuilder(() {
-        Get.put(HomeController());
-        Get.put(SalesController());
-        Get.put(LandingController());
-      }),
+      initialBinding: InitialBinding(),
       home: LandingView(),
     );
   }
