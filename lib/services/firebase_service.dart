@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 
 enum ENVIRONMENT { dev, prod }
 
-const environment = ENVIRONMENT.dev;
+const environment = ENVIRONMENT.prod;
 
 get baseUrl => environment == ENVIRONMENT.dev ? "dev" : "prod";
 
