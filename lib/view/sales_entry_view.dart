@@ -3,10 +3,10 @@ import 'package:get/get.dart';
 import 'package:small_mobile_erp/models/sales_item.dart';
 import '../controllers/sales_controller.dart';
 
-class SalesEntryView extends GetWidget<SalesController> {
+class SalesEntryView extends GetView<SalesController> {
   SalesEntryView({super.key}) {
-    // Regenerate invoice number when the page is opened
-    controller.generateInvoiceNumber();
+    // Reset state and generate invoice number when the page is opened
+    controller.resetState();
   }
 
   @override
@@ -26,101 +26,97 @@ class SalesEntryView extends GetWidget<SalesController> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: EdgeInsets.all(16),
-            child: Form(
-              key: GlobalKey<FormState>(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Invoice Number Card
-                  Obx(
-                    () => Container(
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
-                            spreadRadius: 2,
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Form(
+          key: GlobalKey<FormState>(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Invoice Number Card
+              Obx(
+                () => Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 2,
+                        blurRadius: 8,
+                        offset: Offset(0, 2),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Invoice Number',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            controller.invoiceNumber.value,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.blue,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    ],
                   ),
-
-                  SizedBox(height: 16),
-
-                  // Items Section
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Items',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            TextButton.icon(
-                              onPressed: controller.addItem,
-                              icon: Icon(Icons.add),
-                              label: Text('Add Item'),
-                            ),
-                          ],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Invoice Number',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
                         ),
-                        SizedBox(height: 16),
-                        Obx(
-                          () => Column(
-                            children:
-                                controller.items.asMap().entries.map((entry) {
-                                  return _buildItemRow(entry.value, entry.key);
-                                }).toList(),
+                      ),
+                      Text(
+                        controller.invoiceNumber.value,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 16),
+
+              // Items Section
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Items',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
                           ),
+                        ),
+                        TextButton.icon(
+                          onPressed: controller.addItem,
+                          icon: Icon(Icons.add),
+                          label: Text('Add Item'),
                         ),
                       ],
                     ),
-                  ),
-                  SizedBox(height: 20),
-                ],
+                    SizedBox(height: 16),
+                    Obx(
+                      () => Column(
+                        children:
+                            controller.items.asMap().entries.map((entry) {
+                              return _buildItemRow(entry.value, entry.key);
+                            }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              SizedBox(height: 20),
+            ],
           ),
-        ],
+        ),
       ),
       bottomNavigationBar: Container(
         padding: EdgeInsets.all(20),
@@ -168,26 +164,6 @@ class SalesEntryView extends GetWidget<SalesController> {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(height: 20, width: 1, color: Colors.grey[300]),
-                    Row(
-                      children: [
-                        Text(
-                          'Discount: ',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        Text(
-                          '-₹${controller.totalDiscount.value.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.red[400],
                           ),
                         ),
                       ],
@@ -318,27 +294,64 @@ class SalesEntryView extends GetWidget<SalesController> {
             ],
           ),
           SizedBox(height: 8),
-          TextFormField(
-            decoration: InputDecoration(
-              labelText: 'Item Name',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(6),
-                borderSide: BorderSide(color: Colors.grey[300]!),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(6),
-                borderSide: BorderSide(color: Colors.grey[300]!),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(6),
-                borderSide: BorderSide(color: Colors.blue),
-              ),
-              filled: true,
-              fillColor: Colors.grey[50],
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              isDense: true,
-            ),
-            onChanged: (value) => controller.updateItemName(index, value),
+          Autocomplete<Map<String, dynamic>>(
+            optionsBuilder: (TextEditingValue textEditingValue) {
+              if (textEditingValue.text.isEmpty) {
+                return controller.availableItems;
+              }
+              return controller.availableItems.where((item) {
+                return item['name'].toString().toLowerCase().contains(
+                  textEditingValue.text.toLowerCase(),
+                );
+              });
+            },
+            displayStringForOption: (option) => option['name'] ?? '',
+            onSelected: (selectedItem) {
+              controller.updateItemName(index, selectedItem['name']);
+              // Hide keyboard after selection
+              FocusScope.of(Get.context!).unfocus();
+            },
+          
+            fieldViewBuilder: (
+              context,
+              textEditingController,
+              focusNode,
+              onFieldSubmitted,
+            ) {
+              return TextFormField(
+                controller: textEditingController,
+                focusNode: focusNode,
+                decoration: InputDecoration(
+                  labelText: 'Item Name',
+                  hintText: 'Type to search or add new item',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  isDense: true,
+                ),
+                onChanged: (value) => controller.updateItemName(index, value),
+                onFieldSubmitted: (value) {
+                  if (value.isNotEmpty) {
+                    controller.updateItemName(index, value);
+                  }
+                },
+              );
+            },
           ),
           SizedBox(height: 8),
           Row(
@@ -368,6 +381,9 @@ class SalesEntryView extends GetWidget<SalesController> {
                     isDense: true,
                   ),
                   keyboardType: TextInputType.number,
+                  controller: TextEditingController(
+                    text: item.quantity?.toString() ?? '1',
+                  ),
                   onChanged:
                       (value) => controller.updateItemQuantity(index, value),
                 ),
@@ -401,37 +417,6 @@ class SalesEntryView extends GetWidget<SalesController> {
                   keyboardType: TextInputType.number,
                   onChanged:
                       (value) => controller.updateItemPrice(index, value),
-                ),
-              ),
-              SizedBox(width: 6),
-              Expanded(
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'Discount',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: BorderSide(color: Colors.blue),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                    prefixText: '₹',
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    isDense: true,
-                  ),
-                  keyboardType: TextInputType.number,
-                  onChanged:
-                      (value) => controller.updateItemDiscount(index, value),
                 ),
               ),
             ],

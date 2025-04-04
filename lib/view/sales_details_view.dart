@@ -13,243 +13,142 @@ class SalesDetailsView extends StatelessWidget {
     final List<dynamic> items = sale['items'] ?? [];
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: Text(
-          'Sale Details - ${sale['invoiceNumber']}',
+          'Invoice #${sale['invoiceNumber']}',
           style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 14
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Sale Summary Card
-              Card(
-                elevation: 2,
-                shadowColor: Colors.black26,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Section
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Invoice: ${sale['invoiceNumber']}',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                DateFormat(
-                                  'dd MMM yyyy, HH:mm',
-                                ).format(DateTime.fromMillisecondsSinceEpoch(sale['timestamp'])),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
+                      Text(
+                        DateFormat('dd MMM yyyy, HH:mm').format(
+                          DateTime.fromMillisecondsSinceEpoch(sale['timestamp']),
+                        ),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'Completed',
+                          style: TextStyle(
+                            color: Colors.green[700],
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue[50],
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              'Completed',
-                              style: TextStyle(
-                                color: Colors.blue[700],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Divider(height: 32),
-                      _buildSummaryRow(
-                        'Subtotal',
-                        (sale['subtotal'] ?? 0.0).toDouble(),
-                        Colors.blue[700]!,
-                      ),
-                      const SizedBox(height: 12),
-                      _buildSummaryRow(
-                        'Discount',
-                        ((sale['discounts'] ?? 0.0) + (sale['finalDiscount'] ?? 0.0)).toDouble(),
-                        Colors.blue[700]!,
-                      ),
-                      const Divider(height: 32),
-                      _buildSummaryRow(
-                        'Net Total',
-                        (sale['totalAmount'] ?? 0.0).toDouble(),
-                        Colors.blue[700]!,
-                        isTotal: true,
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Products Table
-              Row(
-                children: [
-                  Icon(
-                    Icons.inventory_2_outlined,
-                    size: 24,
-                    color: Colors.black,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Products',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
+                  const SizedBox(height: 16),
+                  _buildAmountCard(),
                 ],
               ),
-              const SizedBox(height: 16),
-              Card(
-                elevation: 2,
-                shadowColor: Colors.black26,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: SizedBox(
-                  height: 400,
-                  child: SfDataGridTheme(
-                    data: SfDataGridThemeData(
-                      headerColor: Colors.blue[50],
-                      gridLineColor: Colors.grey[200],
-                      gridLineStrokeWidth: 1,
-                    ),
-                    child: SfDataGrid(
-                      source: SaleItemsDataSource(items),
-                      gridLinesVisibility: GridLinesVisibility.both,
-                      headerGridLinesVisibility: GridLinesVisibility.both,
-                      horizontalScrollPhysics: const BouncingScrollPhysics(),
-                      verticalScrollPhysics: const BouncingScrollPhysics(),
-                      columns: [
-                        GridColumn(
-                          columnName: 'name',
-                          label: Container(
-                            padding: const EdgeInsets.all(8),
-                            alignment: Alignment.center,
-                            child: Text(
-                              'Product Name',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.blue[700],
-                              ),
-                            ),
-                          ),
-                          width: 200,
+            ),
+            const SizedBox(height: 12),
+
+            // Items Section
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.inventory_2_outlined,
+                        size: 20,
+                        color: Colors.grey[700],
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Items (${items.length})',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[800],
                         ),
-                        GridColumn(
-                          columnName: 'quantity',
-                          label: Container(
-                            padding: const EdgeInsets.all(8),
-                            alignment: Alignment.center,
-                            child: Text(
-                              'Quantity',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.blue[700],
-                              ),
-                            ),
-                          ),
-                          width: 100,
-                        ),
-                        GridColumn(
-                          columnName: 'price',
-                          label: Container(
-                            padding: const EdgeInsets.all(8),
-                            alignment: Alignment.center,
-                            child: Text(
-                              'Price',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.blue[700],
-                              ),
-                            ),
-                          ),
-                          width: 120,
-                        ),
-                        GridColumn(
-                          columnName: 'discount',
-                          label: Container(
-                            padding: const EdgeInsets.all(8),
-                            alignment: Alignment.center,
-                            child: Text(
-                              'Discount',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.blue[700],
-                              ),
-                            ),
-                          ),
-                          width: 120,
-                        ),
-                        GridColumn(
-                          columnName: 'total',
-                          label: Container(
-                            padding: const EdgeInsets.all(8),
-                            alignment: Alignment.center,
-                            child: Text(
-                              'Total',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.blue[700],
-                              ),
-                            ),
-                          ),
-                          width: 120,
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  _buildItemsTable(items),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildSummaryRow(
+  Widget _buildAmountCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          _buildAmountRow(
+            'Subtotal',
+            (sale['subtotal'] ?? 0.0).toDouble(),
+            isTotal: false,
+          ),
+          const SizedBox(height: 12),
+          _buildAmountRow(
+            'Discount',
+            ((sale['discounts'] ?? 0.0)).toDouble(),
+            isTotal: false,
+            isDiscount: true,
+          ),
+          const Divider(height: 24),
+          _buildAmountRow(
+            'Net Total',
+            (sale['totalAmount'] ?? 0.0).toDouble(),
+            isTotal: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAmountRow(
     String label,
-    double value,
-    Color color, {
+    double value, {
     bool isTotal = false,
+    bool isDiscount = false,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -257,20 +156,110 @@ class SalesDetailsView extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: Colors.grey[700],
+            color: isDiscount ? Colors.red[700] : Colors.grey[700],
             fontSize: isTotal ? 16 : 14,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+            fontWeight: isTotal ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
         Text(
           '₹${value.toStringAsFixed(2)}',
           style: TextStyle(
-            color: color,
+            color: isDiscount ? Colors.red[700] : Colors.grey[800],
             fontSize: isTotal ? 18 : 14,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+            fontWeight: isTotal ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildItemsTable(List<dynamic> items) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: SfDataGridTheme(
+        data: SfDataGridThemeData(
+          headerColor: Colors.grey[100],
+          gridLineColor: Colors.grey[200],
+          gridLineStrokeWidth: 1,
+        ),
+        child: SfDataGrid(
+          source: SaleItemsDataSource(items),
+          gridLinesVisibility: GridLinesVisibility.both,
+          headerGridLinesVisibility: GridLinesVisibility.both,
+          horizontalScrollPhysics: const BouncingScrollPhysics(),
+          verticalScrollPhysics: const BouncingScrollPhysics(),
+          columns: [
+            GridColumn(
+              columnName: 'name',
+              label: Container(
+                padding: const EdgeInsets.all(12),
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Product',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: Colors.grey[800],
+                  ),
+                ),
+              ),
+              width: 150,
+            ),
+            GridColumn(
+              columnName: 'quantity',
+              label: Container(
+                padding: const EdgeInsets.all(12),
+                alignment: Alignment.center,
+                child: Text(
+                  'Qty',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: Colors.grey[800],
+                  ),
+                ),
+              ),
+              width: 80,
+            ),
+            GridColumn(
+              columnName: 'price',
+              label: Container(
+                padding: const EdgeInsets.all(12),
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Price',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: Colors.grey[800],
+                  ),
+                ),
+              ),
+              width: 100,
+            ),
+           
+            GridColumn(
+              columnName: 'total',
+              label: Container(
+                padding: const EdgeInsets.all(12),
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Total',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: Colors.grey[800],
+                  ),
+                ),
+              ),
+              width: 100,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -289,10 +278,7 @@ class SaleItemsDataSource extends DataGridSource {
             columnName: 'price',
             value: (item['price'] ?? 0.0).toDouble(),
           ),
-          DataGridCell<double>(
-            columnName: 'discount',
-            value: (item['discount'] ?? 0.0).toDouble(),
-          ),
+          
           DataGridCell<double>(
             columnName: 'total',
             value: (item['total'] ?? 0.0).toDouble(),
@@ -326,11 +312,16 @@ class SaleItemsDataSource extends DataGridSource {
         }
 
         return Container(
-          alignment: Alignment.center,
-          padding: const EdgeInsets.all(8),
+          alignment: cell.columnName == 'name' 
+              ? Alignment.centerLeft 
+              : Alignment.centerRight,
+          padding: const EdgeInsets.all(12),
           child: Text(
             displayValue,
-            style: const TextStyle(color: Colors.black),
+            style: TextStyle(
+              color: Colors.grey[800],
+              fontSize: 13,
+            ),
           ),
         );
       }).toList(),

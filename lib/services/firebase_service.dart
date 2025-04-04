@@ -305,4 +305,176 @@ class FirebaseService {
       rethrow;
     }
   }
+
+  // Get sales data by date range
+  Stream<List<Map<String, dynamic>>> getSalesByDateRange(
+    DateTime startDate,
+    DateTime endDate,
+  ) {
+    // Create a stream controller to manage the stream
+    final controller = StreamController<List<Map<String, dynamic>>>();
+    
+    // Map to store all sales data
+    final Map<String, Map<String, dynamic>> allSalesMap = {};
+    
+    // List of subscriptions to clean up later
+    final List<StreamSubscription> subscriptions = [];
+    
+    // Function to update the stream with current data
+    void updateStream() {
+      final List<Map<String, dynamic>> allSales = allSalesMap.values.toList();
+      
+      // Sort sales by timestamp in descending order
+      allSales.sort((a, b) {
+        final aTime = a['timestamp'] ?? 0;
+        final bTime = b['timestamp'] ?? 0;
+        return bTime.compareTo(aTime);
+      });
+      
+      // Add the sales data to the stream
+      controller.add(allSales);
+    }
+    
+    // Set up listeners for each day in the range
+    for (
+      DateTime date = startDate;
+      date.isBefore(endDate.add(const Duration(days: 1)));
+      date = date.add(const Duration(days: 1))
+    ) {
+      final year = date.year.toString();
+      final month = date.month.toString().padLeft(2, '0');
+      final day = date.day.toString().padLeft(2, '0');
+      final dateKey = '$year-$month-$day';
+      
+      // Create a reference to this day's sales
+      final dayRef = _database
+          .child(baseUrl)
+          .child('sales')
+          .child(year)
+          .child(month)
+          .child(day);
+      
+      // Listen for changes to this day's sales
+      final subscription = dayRef.onValue.listen(
+        (event) {
+          if (event.snapshot.value == null) {
+            // No sales for this day, remove any existing sales for this day
+            allSalesMap.removeWhere((key, value) => value['date'] == dateKey);
+            updateStream();
+            return;
+          }
+          
+          final Map<dynamic, dynamic> daySales = event.snapshot.value as Map<dynamic, dynamic>;
+          
+          // Process each sale for this day
+          daySales.forEach((invoiceNumber, saleData) {
+            if (saleData is Map) {
+              final Map<String, dynamic> sale = Map<String, dynamic>.from(saleData);
+              sale['date'] = dateKey;
+              sale['invoiceNumber'] = invoiceNumber;
+              
+              // Add or update this sale in our map
+              allSalesMap['$dateKey-$invoiceNumber'] = sale;
+            }
+          });
+          
+          // Update the stream with the latest data
+          updateStream();
+        },
+        onError: (error) {
+          debugPrint('Error listening to sales for $dateKey: $error');
+        }
+      );
+      
+      // Add this subscription to our list for cleanup
+      subscriptions.add(subscription);
+    }
+    
+    // Clean up resources when the stream is closed
+    controller.onCancel = () {
+      for (var subscription in subscriptions) {
+        subscription.cancel();
+      }
+      controller.close();
+    };
+    
+    return controller.stream;
+  }
+
+  // Calculate summary statistics from sales data
+  Map<String, dynamic> calculateSalesSummary(List<Map<String, dynamic>> sales) {
+    double totalSales = 0;
+    int totalOrders = sales.length;
+    double totalDiscounts = 0;
+
+    for (var sale in sales) {
+      totalSales += (sale['totalAmount'] ?? 0).toDouble();
+      totalDiscounts += (sale['discounts'] ?? 0).toDouble();
+    }
+
+    return {
+      'totalSales': totalSales,
+      'totalOrders': totalOrders,
+      'totalDiscounts': totalDiscounts,
+      'netTotal': totalSales - totalDiscounts,
+    };
+  }
+
+  Stream<List<Map<String, dynamic>>> getItems() {
+    debugPrint('Fetching items...');
+    return _database.child(baseUrl).child('items').onValue.map((event) {
+      if (event.snapshot.value == null) {
+        debugPrint('No items found');
+        return [];
+      }
+
+      List<Map<String, dynamic>> items = [];
+      try {
+        Map<dynamic, dynamic> data = event.snapshot.value as Map<dynamic, dynamic>;
+        data.forEach((key, value) {
+          if (value is Map) {
+            Map<String, dynamic> item = {
+              'id': key,
+              'name': value['name'],
+              'createdAt': value['createdAt'],
+            };
+            items.add(item);
+          }
+        });
+      } catch (e) {
+        debugPrint('Error processing items data: $e');
+      }
+
+      // Sort by creation date
+      items.sort((a, b) {
+        final aTime = a['createdAt'] ?? 0;
+        final bTime = b['createdAt'] ?? 0;
+        return bTime.compareTo(aTime);
+      });
+
+      debugPrint('Found ${items.length} items');
+      return items;
+    });
+  }
+
+  Future<void> addItem(Map<String, dynamic> itemData) async {
+    try {
+      final itemsRef = _database.child(baseUrl).child('items');
+      await itemsRef.push().set(itemData);
+      debugPrint('Item added successfully');
+    } catch (e) {
+      debugPrint('Error adding item: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteItem(String id) async {
+    try {
+      await _database.child(baseUrl).child('items').child(id).remove();
+      debugPrint('Item deleted successfully: $id');
+    } catch (e) {
+      debugPrint('Error deleting item: $e');
+      rethrow;
+    }
+  }
 }

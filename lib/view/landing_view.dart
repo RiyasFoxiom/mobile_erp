@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:small_mobile_erp/widgets/app_drawer.dart';
 import 'home_view.dart';
 import 'report_view.dart';
 import '../controllers/landing_controller.dart';
 
-class LandingView extends GetWidget<LandingController> {
+class LandingView extends GetView<LandingController> {
   const LandingView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: AppDrawer(),
       body: Obx(
         () => IndexedStack(
           index: controller.currentIndex.value,
