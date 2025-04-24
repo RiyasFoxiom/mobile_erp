@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:small_mobile_erp/controllers/sales_controller.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:intl/intl.dart';
@@ -12,6 +14,9 @@ class SalesDetailsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<dynamic> items = sale['items'] ?? [];
 
+
+    final controller  = Get.find<SalesController>();
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -22,6 +27,15 @@ class SalesDetailsView extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              controller.printReceipt(sale);
+            },
+            icon: const Icon(Icons.print),
+          ),
+          const SizedBox(width: 16),
+        ],
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),

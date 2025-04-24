@@ -1,7 +1,10 @@
 import 'package:get/get.dart';
+import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:small_mobile_erp/controllers/printer_controller.dart';
 import 'package:small_mobile_erp/models/sales_item.dart';
+import 'package:small_mobile_erp/utils/printer/thermal_printer.dart';
 import '../services/firebase_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -18,11 +21,21 @@ class SalesController extends GetxController {
   // Track new items that need to be added to Firebase
   var newItems = <Map<String, dynamic>>[].obs;
 
+  // Track selected printer address
+  final RxString selectedPrinterAddress = ''.obs;
+
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
     generateInvoiceNumber();
     _setupItemsStream();
+    await loadSavedPrinter();
+  }
+
+  Future<void> loadSavedPrinter() async {
+    final prefs = await SharedPreferences.getInstance();
+    selectedPrinterAddress.value = prefs.getString(PRINTER_ADDRESS_KEY) ?? '';
+    debugPrint('Selected printer address: ${selectedPrinterAddress.value}');
   }
 
   void _setupItemsStream() {
@@ -44,15 +57,12 @@ class SalesController extends GetxController {
   }
 
   void generateInvoiceNumber() {
-    final now = DateTime.now();
-    final year = now.year.toString().substring(2);
-    final month = now.month.toString().padLeft(2, '0');
-    final day = now.day.toString().padLeft(2, '0');
+    
     final random = (DateTime.now().millisecondsSinceEpoch % 1000)
         .toString()
-        .padLeft(3, '0');
+        .padLeft(5, '0');
 
-    invoiceNumber.value = 'INV-$year$month$day-$random';
+    invoiceNumber.value = 'INV-$random';
   }
 
   // Reset the controller state when the view is reopened
@@ -111,14 +121,14 @@ class SalesController extends GetxController {
       // First, add any new items to Firebase
       for (var item in items) {
         if (item.name != null && item.name!.isNotEmpty) {
-          // Check if this item exists in availableItems
-          bool itemExists = availableItems.any((availableItem) => 
-            availableItem['name'].toString().toLowerCase() == item.name!.toLowerCase()
+          bool itemExists = availableItems.any(
+            (availableItem) =>
+                availableItem['name'].toString().toLowerCase() ==
+                item.name!.toLowerCase(),
           );
           
           if (!itemExists) {
             try {
-              // Add the new item to Firebase
               final newItem = {
                 'name': item.name,
                 'createdAt': DateTime.now().millisecondsSinceEpoch,
@@ -127,7 +137,6 @@ class SalesController extends GetxController {
               debugPrint('Added new item to inventory: ${newItem['name']}');
             } catch (e) {
               debugPrint('Error adding new item to inventory: $e');
-              // Continue with saving the sale even if adding a new item fails
             }
           }
         }
@@ -136,6 +145,7 @@ class SalesController extends GetxController {
       final saleData = {
         'invoiceNumber': invoiceNumber.value,
         'timestamp': DateTime.now().millisecondsSinceEpoch,
+        "date": DateTime.now().toIso8601String(),
         'items':
             items
                 .map(
@@ -143,7 +153,6 @@ class SalesController extends GetxController {
                     'name': item.name ?? '',
                     'quantity': item.quantity ?? 0,
                     'price': item.price ?? 0,
-                    // 'discount': item.discount ?? 0,
                     'total': (item.quantity ?? 0) * (item.price ?? 0),
                   },
                 )
@@ -152,8 +161,25 @@ class SalesController extends GetxController {
         'discounts': finalDiscount.value,
         'totalAmount': finalTotal,
       };
+
+      debugPrint('Sale data: $saleData');
+
+      // Save to Firebase
       await _firebaseService.saveSaleEntry(saleData);
-      resetState(); // Reset state after saving
+
+      // Try to print the receipt
+      try {
+        await printReceipt(saleData);
+      } catch (e) {
+        debugPrint('Error printing receipt: $e');
+        Get.snackbar(
+          'Print Error',
+          'Failed to print receipt: $e',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+
+      resetState();
       Get.back();
       Get.snackbar(
         'Success',
@@ -171,6 +197,67 @@ class SalesController extends GetxController {
     }
   }
 
+  Future<void> printReceipt(Map<String, dynamic> saleData) async {
+    if (selectedPrinterAddress.value.isEmpty) {
+      debugPrint('No printer configured');
+      return;
+    }
+
+    await checkBluetoothStatus();
+
+    if (!isBluetoothOn.value) {
+      Get.snackbar(
+        'Bluetooth Error',
+        'Please enable Bluetooth to print receipt',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    try {
+      // Check connection status
+      final connection = await PrintBluetoothThermal.connectionStatus;
+      debugPrint('Current connection status: $connection');
+
+      // Connect if not already connected
+      if (!connection) {
+        debugPrint('Connecting to printer: ${selectedPrinterAddress.value}');
+        final connectResult = await PrintBluetoothThermal.connect(
+          macPrinterAddress: selectedPrinterAddress.value,
+        );
+        
+        if (!connectResult) {
+          throw Exception('Failed to connect to printer');
+        }
+      }
+
+      // Generate the invoice bytes
+      final ticket = await generateInvoice(saleData);
+
+      // Print the invoice
+      final printResult = await PrintBluetoothThermal.writeBytes(ticket);
+
+      if (!printResult) {
+        throw Exception('Failed to print receipt');
+      }
+
+      debugPrint('Receipt printed successfully');
+    } catch (e) {
+      debugPrint('Error in printReceipt: $e');
+      rethrow;
+    }
+  }
+
+  RxBool isBluetoothOn = false.obs;
+
+  Future<void> checkBluetoothStatus() async {
+    try {
+      isBluetoothOn.value = await PrintBluetoothThermal.bluetoothEnabled;
+    } catch (e) {
+      debugPrint("Error checking Bluetooth status: $e");
+    }
+  }
+
   void addItem() {
     items.add(SalesItem());
   }
@@ -184,19 +271,19 @@ class SalesController extends GetxController {
 
   void updateItemName(int index, String value) {
     items[index].name = value;
-    
+
     // Check if this is a new item that doesn't exist in availableItems
-    bool itemExists = availableItems.any((item) => 
-      item['name'].toString().toLowerCase() == value.toLowerCase()
+    bool itemExists = availableItems.any(
+      (item) => item['name'].toString().toLowerCase() == value.toLowerCase(),
     );
-    
+
     // If it's a new item, add it to the newItems list for later saving
     if (!itemExists && value.isNotEmpty) {
       // Check if this item is already in the newItems list
-      bool alreadyInNewItems = newItems.any((item) => 
-        item['name'].toString().toLowerCase() == value.toLowerCase()
+      bool alreadyInNewItems = newItems.any(
+        (item) => item['name'].toString().toLowerCase() == value.toLowerCase(),
       );
-      
+
       if (!alreadyInNewItems) {
         final newItem = {
           'name': value,

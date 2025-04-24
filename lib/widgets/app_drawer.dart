@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../view/items_adding_view.dart';
+import '../view/print_settings_view.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -43,6 +44,14 @@ class AppDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pop(context); // Close drawer
               Get.to(() => ItemsAddingView());
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.print),
+            title: Text('Print Settings'),
+            onTap: () {
+              Navigator.pop(context); // Close drawer
+              Get.to(() => const PrintSettingsView());
             },
           ),
           // ListTile(
